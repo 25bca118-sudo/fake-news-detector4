@@ -1,0 +1,81 @@
+{
+  "anger": [
+    "furious",
+    "outraged",
+    "disgraceful",
+    "corrupt",
+    "scandal",
+    "betrayal",
+    "fury",
+    "enemy",
+    "disaster",
+    "treason",
+    "criminal",
+    "evil"
+  ],
+  "fear": [
+    "danger",
+    "panic",
+    "deadly",
+    "apocalypse",
+    "crisis",
+    "collapse",
+    "warning",
+    "lethal",
+    "threat",
+    "ruin",
+    "catastrophe",
+    "poison"
+  ],
+  "joy": [
+    "miracle",
+    "breakthrough",
+    "triumph",
+    "celebration",
+    "historic",
+    "victory",
+    "genius",
+    "wonder",
+    "cure",
+    "blessing"
+  ],
+  "sadness": [
+    "tragedy",
+    "mourning",
+    "sorrow",
+    "devastated",
+    "hopeless",
+    "loss",
+    "grief",
+    "suffering",
+    "heartbroken"
+  ],
+  "surprise": [
+    "shocking",
+    "unbelievable",
+    "astonishing",
+    "stunned",
+    "jaw-dropping",
+    "exposed",
+    "secret",
+    "bombshell",
+    "revealed"
+  ],
+  "clickbait_triggers": [
+    "you won't believe",
+    "what happens next",
+    "will blow your mind",
+    "doctors hate this",
+    "the real truth about",
+    "shocking proof",
+    "secret they don't want you to know",
+    "is finally exposed",
+    "this one simple trick",
+    "viral sensation",
+    "mainstream media won't tell you",
+    "unbelievable discovery",
+    "breaking scandal",
+    "hidden cure",
+    "everyone is talking about"
+  ]
+}

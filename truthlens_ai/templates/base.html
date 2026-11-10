@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TruthLens AI — AI Fake News Detection & Verification{% endblock %}</title>
+    <!-- Modern Font & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js for Interactive Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="brand-text">
+                    <span class="brand-name">TruthLens<span class="ai-badge">AI</span></span>
+                    <span class="brand-tagline">Verification & Intelligence</span>
+                </div>
+            </a>
+            
+            <div class="nav-links">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                    <i class="fa-solid fa-newspaper"></i> News Analyzer
+                </a>
+                <a href="/image-verify" class="nav-link {% if request.path == '/image-verify' %}active{% endif %}">
+                    <i class="fa-solid fa-camera-rotate"></i> Image Forensics
+                </a>
+                <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Analytics & Models
+                </a>
+                <a href="/history" class="nav-link {% if request.path == '/history' %}active{% endif %}">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History
+                </a>
+            </div>
+
+            <div class="nav-auth">
+                {% if user %}
+                    <div class="user-pill">
+                        <i class="fa-regular fa-circle-user"></i>
+                        <span>{{ user.username }}</span>
+                        <a href="/api/auth/logout" class="btn-logout" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+                    </div>
+                {% else %}
+                    <a href="/login" class="btn-primary-sm">
+                        <i class="fa-solid fa-user-lock"></i> Login / Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div class="footer-logo">
+                    <i class="fa-solid fa-shield-halved"></i> TruthLens AI
+                </div>
+                <p>Enterprise multi-modal AI platform designed to detect, contextualize, and combat online misinformation using Explainable NLP, Machine Learning, and External Fact Verification.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Core Modules</h4>
+                <ul>
+                    <li><i class="fa-solid fa-chevron-right"></i> ML Ensembles (Logistic, NB, RF)</li>
+                    <li><i class="fa-solid fa-chevron-right"></i> DistilBERT Contextual Representations</li>
+                    <li><i class="fa-solid fa-chevron-right"></i> Explainable AI (XAI) Token Attribution</li>
+                    <li><i class="fa-solid fa-chevron-right"></i> Error Level Analysis (ELA) Image Forensics</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>System Compliance</h4>
+                <ul>
+                    <li><i class="fa-solid fa-shield-virus"></i> SSRF-Protected Safe Extraction</li>
+                    <li><i class="fa-solid fa-file-pdf"></i> Automated ReportLab PDF Generation</li>
+                    <li><i class="fa-solid fa-language"></i> Multilingual Regional Processing</li>
+                    <li><i class="fa-solid fa-database"></i> SQLite Relational Audit Trail</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 TruthLens AI. Designed & Developed as an Advanced AI Misinformation Detection System.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

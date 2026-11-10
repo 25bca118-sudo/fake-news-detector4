@@ -1,0 +1,113 @@
+﻿{% extends "base.html" %}
+
+{% block title %}TruthLens AI — User Authentication{% endblock %}
+
+{% block content %}
+<div class="auth-page-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            <h2>TruthLens AI</h2>
+            <p>Access your personal verification history & audit records</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login" onclick="toggleAuthTab('login')">Sign In</button>
+            <button class="auth-tab" id="tab-register" onclick="toggleAuthTab('register')">Create Account</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="form-login" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="login-ident"><i class="fa-solid fa-user"></i> Username or Email</label>
+                <input type="text" id="login-ident" required placeholder="Enter username or email">
+            </div>
+            <div class="form-group">
+                <label for="login-pwd"><i class="fa-solid fa-lock"></i> Password</label>
+                <input type="password" id="login-pwd" required placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn-primary-lg w-100">Sign In to Platform</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="reg-username"><i class="fa-solid fa-user"></i> Choose Username</label>
+                <input type="text" id="reg-username" required placeholder="e.g. gopinath_s">
+            </div>
+            <div class="form-group">
+                <label for="reg-email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                <input type="email" id="reg-email" required placeholder="name@domain.com">
+            </div>
+            <div class="form-group">
+                <label for="reg-pwd"><i class="fa-solid fa-lock"></i> Password (min. 6 characters)</label>
+                <input type="password" id="reg-pwd" required placeholder="Create secure password">
+            </div>
+            <button type="submit" class="btn-primary-lg w-100">Create Free Account</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleAuthTab(mode) {
+    if (mode === 'login') {
+        document.getElementById('tab-login').classList.add('active');
+        document.getElementById('tab-register').classList.remove('active');
+        document.getElementById('form-login').classList.remove('hidden');
+        document.getElementById('form-register').classList.add('hidden');
+    } else {
+        document.getElementById('tab-register').classList.add('active');
+        document.getElementById('tab-login').classList.remove('active');
+        document.getElementById('form-register').classList.remove('hidden');
+        document.getElementById('form-login').classList.add('hidden');
+    }
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const ident = document.getElementById('login-ident').value;
+    const pwd = document.getElementById('login-pwd').value;
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username_or_email: ident, password: pwd })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast("Login successful! Redirecting...", "success");
+            setTimeout(() => { window.location.href = '/'; }, 800);
+        } else {
+            showToast(data.message || "Invalid credentials", "error");
+        }
+    } catch (err) {
+        showToast("Error during login: " + err.message, "error");
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    const username = document.getElementById('reg-username').value;
+    const email = document.getElementById('reg-email').value;
+    const pwd = document.getElementById('reg-pwd').value;
+    try {
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password: pwd })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast("Registration successful! Welcome to TruthLens AI.", "success");
+            setTimeout(() => { window.location.href = '/'; }, 800);
+        } else {
+            showToast(data.message || "Registration failed", "error");
+        }
+    } catch (err) {
+        showToast("Error during registration: " + err.message, "error");
+    }
+}
+</script>
+{% endblock %}

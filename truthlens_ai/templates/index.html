@@ -1,0 +1,391 @@
+﻿{% extends "base.html" %}
+
+{% block title %}TruthLens AI — News Verification Workbench{% endblock %}
+
+{% block content %}
+<div class="workbench-container">
+    <!-- Hero Header -->
+    <div class="hero-section">
+        <div class="hero-badge"><i class="fa-solid fa-atom"></i> Multi-Modal Misinformation Intelligence Platform</div>
+        <h1 class="hero-title">Verify News with <span class="gradient-text">Explainable AI</span> & Live Evidence</h1>
+        <p class="hero-desc">Analyze headlines, full journalistic articles, or online URLs through multi-model machine learning ensembles, contextual DistilBERT transformers, publisher credibility scoring, and forensic claim matching.</p>
+    </div>
+
+    <!-- Quick Loaders Preset Bar -->
+    <div class="presets-card">
+        <span class="preset-label"><i class="fa-solid fa-bolt"></i> Quick Test Demos:</span>
+        <button type="button" class="btn-preset" onclick="loadSample('real_science')">
+            <i class="fa-solid fa-check-double text-emerald"></i> NASA Exoplanet (Real News)
+        </button>
+        <button type="button" class="btn-preset" onclick="loadSample('fake_health')">
+            <i class="fa-solid fa-triangle-exclamation text-rose"></i> Miracle Cancer Cure (Fake News)
+        </button>
+        <button type="button" class="btn-preset" onclick="loadSample('fake_finance')">
+            <i class="fa-solid fa-triangle-exclamation text-rose"></i> Global Cash Freeze (Hoax)
+        </button>
+        <button type="button" class="btn-preset" onclick="loadSample('regional_hindi')">
+            <i class="fa-solid fa-language text-indigo"></i> Hindi Regional Misinfo (हिन्दी)
+        </button>
+    </div>
+
+    <!-- Input Workbench Card -->
+    <div class="card workbench-card">
+        <!-- Input Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="tab-btn-text" onclick="switchInputMode('text')">
+                <i class="fa-solid fa-align-left"></i> Analyze Text Content
+            </button>
+            <button class="mode-tab" id="tab-btn-url" onclick="switchInputMode('url')">
+                <i class="fa-solid fa-link"></i> Analyze Article URL
+            </button>
+        </div>
+
+        <form id="analyze-form" onsubmit="submitAnalysis(event)">
+            <!-- URL Input Pane -->
+            <div id="url-pane" class="input-pane hidden">
+                <div class="form-group">
+                    <label for="news-url"><i class="fa-solid fa-globe"></i> News Article URL (Protected by SSRF Guardrails)</label>
+                    <div class="url-input-wrapper">
+                        <input type="url" id="news-url" placeholder="https://www.reuters.com/world/... or news article link">
+                        <span class="input-hint"><i class="fa-solid fa-shield-halved"></i> Validates destination IP to prevent server-side request forgery.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Text Input Pane -->
+            <div id="text-pane" class="input-pane">
+                <div class="form-row">
+                    <div class="form-group flex-2">
+                        <label for="news-title"><i class="fa-solid fa-heading"></i> Headline / Article Title (Optional)</label>
+                        <input type="text" id="news-title" placeholder="e.g. Scientists announce major discovery in renewable battery tech...">
+                    </div>
+                    <div class="form-group flex-1">
+                        <label for="news-category"><i class="fa-solid fa-tag"></i> Domain Category</label>
+                        <select id="news-category">
+                            <option value="General">General News</option>
+                            <option value="Politics">Politics & Governance</option>
+                            <option value="Health">Health & Medicine</option>
+                            <option value="Science">Science & Space</option>
+                            <option value="Technology">Technology & AI</option>
+                            <option value="Business">Business & Economy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="news-text"><i class="fa-solid fa-paragraph"></i> Article Content / News Text</label>
+                    <textarea id="news-text" rows="7" placeholder="Paste the full news article, forwarded social message, or statement here for multi-layered analysis..."></textarea>
+                    <div class="textarea-footer">
+                        <span id="char-count">0 characters (min. 15 required)</span>
+                        <span class="hint-badge"><i class="fa-solid fa-language"></i> Supports English, Hindi & Kannada</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" id="btn-submit" class="btn-primary-lg">
+                    <span id="btn-submit-text"><i class="fa-solid fa-magnifying-glass-chart"></i> Run Deep Verification</span>
+                    <span id="btn-submit-spinner" class="spinner hidden"></span>
+                </button>
+                <button type="button" class="btn-secondary" onclick="resetForm()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Section (Initially Hidden) -->
+    <div id="results-section" class="results-container hidden">
+        <!-- Top Verdict Banner Card -->
+        <div class="card verdict-card">
+            <div class="verdict-header">
+                <div class="verdict-title-box">
+                    <span class="sub-label">TRUTHLENS AI VERIFICATION OUTCOME</span>
+                    <h2 id="result-title" class="result-headline">Analysis Headline</h2>
+                    <div class="metadata-chips">
+                        <span id="chip-domain" class="chip"><i class="fa-solid fa-globe"></i> Direct Input</span>
+                        <span id="chip-category" class="chip"><i class="fa-solid fa-tag"></i> General</span>
+                        <span id="chip-lang" class="chip"><i class="fa-solid fa-language"></i> English</span>
+                        <span id="chip-date" class="chip"><i class="fa-solid fa-calendar"></i> Just Now</span>
+                    </div>
+                </div>
+                
+                <!-- Credibility Index Gauge -->
+                <div class="verdict-score-box">
+                    <div class="score-circle" id="score-circle">
+                        <div class="score-inner">
+                            <span id="score-value" class="score-number">--</span>
+                            <span class="score-label">/ 100</span>
+                        </div>
+                    </div>
+                    <div id="verdict-pill" class="verdict-pill">Evaluating...</div>
+                    <span class="score-subtext">Compound Credibility Score</span>
+                </div>
+            </div>
+
+            <div class="verdict-actions">
+                <a id="btn-download-pdf" href="#" target="_blank" class="btn-pdf">
+                    <i class="fa-solid fa-file-pdf"></i> Download Official PDF Report
+                </a>
+                <span class="pdf-notice"><i class="fa-solid fa-check"></i> Formatted with ReportLab, citations & model parameters.</span>
+            </div>
+        </div>
+
+        <!-- Metric Highlight Cards Row -->
+        <div class="kpi-grid">
+            <div class="card kpi-card">
+                <div class="kpi-icon icon-blue"><i class="fa-solid fa-brain"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-title">ML Ensemble Confidence</span>
+                    <span id="kpi-ml" class="kpi-val">--%</span>
+                    <span id="kpi-ml-sub" class="kpi-desc">Logistic + Naive Bayes + RF</span>
+                </div>
+            </div>
+            <div class="card kpi-card">
+                <div class="kpi-icon icon-purple"><i class="fa-solid fa-microchip"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Contextual DistilBERT</span>
+                    <span id="kpi-dl" class="kpi-val">--%</span>
+                    <span id="kpi-dl-sub" class="kpi-desc">Semantic Transformer</span>
+                </div>
+            </div>
+            <div class="card kpi-card">
+                <div class="kpi-icon icon-emerald"><i class="fa-solid fa-building-columns"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Source Reputation</span>
+                    <span id="kpi-source" class="kpi-val">-- / 100</span>
+                    <span id="kpi-source-sub" class="kpi-desc">Domain Governance</span>
+                </div>
+            </div>
+            <div class="card kpi-card">
+                <div class="kpi-icon icon-amber"><i class="fa-solid fa-bullhorn"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Clickbait & Hype Index</span>
+                    <span id="kpi-clickbait" class="kpi-val">-- / 100</span>
+                    <span id="kpi-clickbait-sub" class="kpi-desc">Sensationalism Level</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Breakdown Tabs Card -->
+        <div class="card tabs-card">
+            <div class="detail-nav-tabs">
+                <button class="detail-tab active" onclick="switchDetailTab('xai')">
+                    <i class="fa-solid fa-highlighter"></i> Explainable AI (XAI)
+                </button>
+                <button class="detail-tab" onclick="switchDetailTab('models')">
+                    <i class="fa-solid fa-microchip"></i> Multi-Model Classification
+                </button>
+                <button class="detail-tab" onclick="switchDetailTab('fact')">
+                    <i class="fa-solid fa-scale-balanced"></i> Fact-Check Evidence
+                </button>
+                <button class="detail-tab" onclick="switchDetailTab('source')">
+                    <i class="fa-solid fa-globe"></i> Source Credibility
+                </button>
+                <button class="detail-tab" onclick="switchDetailTab('sentiment')">
+                    <i class="fa-solid fa-heart-pulse"></i> Emotion & Sentiment
+                </button>
+            </div>
+
+            <!-- Tab 1: Explainable AI -->
+            <div id="pane-xai" class="detail-pane active">
+                <div class="pane-header">
+                    <h3><i class="fa-solid fa-highlighter text-indigo"></i> Feature Attribution & Token Influence</h3>
+                    <p>Transparent explainability engine highlighting words that statistically pushed the model towards <span class="text-emerald font-bold">Likely Genuine</span> or <span class="text-rose font-bold">Potentially Fake / Misleading</span>.</p>
+                </div>
+                
+                <div class="xai-legend">
+                    <span class="legend-item"><span class="legend-chip chip-green"></span> Genuine Language Influence</span>
+                    <span class="legend-item"><span class="legend-chip chip-red"></span> Misinformation / Suspicious Indicator</span>
+                    <span class="legend-item"><span class="legend-chip chip-gray"></span> Neutral Context Words</span>
+                </div>
+
+                <div class="xai-text-box" id="xai-rendered-content">
+                    <!-- Highlighted HTML dynamically rendered here -->
+                </div>
+
+                <div class="top-words-section">
+                    <h4>Top Vocabulary Influencers & Weights</h4>
+                    <div id="top-words-list" class="words-pill-grid"></div>
+                </div>
+
+                <div class="alert-box alert-info">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="xai-disclaimer">Attribution highlights reflect statistical vocabulary correlations rather than absolute factual declarations.</span>
+                </div>
+            </div>
+
+            <!-- Tab 2: Multi-Model ML & DL -->
+            <div id="pane-models" class="detail-pane hidden">
+                <div class="pane-header">
+                    <h3><i class="fa-solid fa-layer-group text-indigo"></i> Multi-Algorithm Comparative Breakdown</h3>
+                    <p>Comparison across traditional statistical ML baselines and modern contextual transformer representations.</p>
+                </div>
+
+                <div class="models-grid">
+                    <div class="model-item-card">
+                        <div class="model-item-header">
+                            <span class="model-name">Logistic Regression</span>
+                            <span id="badge-lr" class="model-badge">Evaluating</span>
+                        </div>
+                        <p class="model-meta">TF-IDF Vectorized L2 Regularized Baseline</p>
+                        <div class="prob-bars">
+                            <div class="prob-row">
+                                <span>Genuine:</span>
+                                <span id="lr-real-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="lr-real-bar" class="progress-fill fill-green" style="width: 0%"></div></div>
+                            <div class="prob-row">
+                                <span>Fake:</span>
+                                <span id="lr-fake-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="lr-fake-bar" class="progress-fill fill-red" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="model-item-card">
+                        <div class="model-item-header">
+                            <span class="model-name">Multinomial Naive Bayes</span>
+                            <span id="badge-nb" class="model-badge">Evaluating</span>
+                        </div>
+                        <p class="model-meta">Probabilistic Frequency Classifier</p>
+                        <div class="prob-bars">
+                            <div class="prob-row">
+                                <span>Genuine:</span>
+                                <span id="nb-real-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="nb-real-bar" class="progress-fill fill-green" style="width: 0%"></div></div>
+                            <div class="prob-row">
+                                <span>Fake:</span>
+                                <span id="nb-fake-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="nb-fake-bar" class="progress-fill fill-red" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="model-item-card">
+                        <div class="model-item-header">
+                            <span class="model-name">Random Forest Classifier</span>
+                            <span id="badge-rf" class="model-badge">Evaluating</span>
+                        </div>
+                        <p class="model-meta">Ensemble Decision Trees (100 Estimators)</p>
+                        <div class="prob-bars">
+                            <div class="prob-row">
+                                <span>Genuine:</span>
+                                <span id="rf-real-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="rf-real-bar" class="progress-fill fill-green" style="width: 0%"></div></div>
+                            <div class="prob-row">
+                                <span>Fake:</span>
+                                <span id="rf-fake-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="rf-fake-bar" class="progress-fill fill-red" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="model-item-card featured-dl">
+                        <div class="model-item-header">
+                            <span class="model-name"><i class="fa-solid fa-sparkles text-indigo"></i> DistilBERT Contextual Transformer</span>
+                            <span id="badge-dl" class="model-badge">Evaluating</span>
+                        </div>
+                        <p class="model-meta">Contextual Semantic Projections & Multi-Head Attention Representation</p>
+                        <div class="prob-bars">
+                            <div class="prob-row">
+                                <span>Genuine:</span>
+                                <span id="dl-real-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="dl-real-bar" class="progress-fill fill-green" style="width: 0%"></div></div>
+                            <div class="prob-row">
+                                <span>Fake:</span>
+                                <span id="dl-fake-val" class="font-bold">--%</span>
+                            </div>
+                            <div class="progress-bar"><div id="dl-fake-bar" class="progress-fill fill-red" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Fact-Check Evidence -->
+            <div id="pane-fact" class="detail-pane hidden">
+                <div class="pane-header">
+                    <h3><i class="fa-solid fa-scale-balanced text-indigo"></i> Claim Extraction & External Evidence Verification</h3>
+                    <p>Comparison of identified key assertions against recognized international fact-check databases, official government releases, and peer-reviewed sources.</p>
+                </div>
+
+                <div class="claims-box">
+                    <h4>Identified Core Claims from Text:</h4>
+                    <ul id="claims-list" class="claims-list"></ul>
+                </div>
+
+                <div class="evidence-columns">
+                    <div class="evidence-col">
+                        <h4><i class="fa-solid fa-circle-check text-emerald"></i> Supporting / Corroborating Evidence</h4>
+                        <div id="supporting-evidence-list" class="evidence-items"></div>
+                    </div>
+                    <div class="evidence-col">
+                        <h4><i class="fa-solid fa-circle-xmark text-rose"></i> Contradicting / Debunked Evidence</h4>
+                        <div id="contradicting-evidence-list" class="evidence-items"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Source Credibility -->
+            <div id="pane-source" class="detail-pane hidden">
+                <div class="pane-header">
+                    <h3><i class="fa-solid fa-globe text-indigo"></i> Domain & Publisher Reputation Assessment</h3>
+                    <p>Analysis of publisher history, domain extensions, editorial governance, and fact-checking registry listings.</p>
+                </div>
+
+                <div class="source-details-card">
+                    <div class="source-top">
+                        <div class="source-meta">
+                            <h4 id="source-domain-name">Domain: direct text</h4>
+                            <span id="source-status-pill" class="badge">Unverified</span>
+                        </div>
+                        <div class="source-score-box">
+                            <span class="source-score-label">Domain Trust</span>
+                            <span id="source-score-num" class="source-score-num">50 / 100</span>
+                        </div>
+                    </div>
+                    <p id="source-description" class="source-desc-text">Directly submitted text content.</p>
+                    <div id="source-badges" class="source-badges-container"></div>
+                </div>
+            </div>
+
+            <!-- Tab 5: Sentiment & Clickbait -->
+            <div id="pane-sentiment" class="detail-pane hidden">
+                <div class="pane-header">
+                    <h3><i class="fa-solid fa-heart-pulse text-indigo"></i> Stylometric & Emotional Profiling</h3>
+                    <p>Evaluates writing tone, subjective bias, emotion distribution, and clickbait headline exaggeration.</p>
+                </div>
+
+                <div class="sentiment-grid">
+                    <div class="sent-card">
+                        <h4>Sentiment Tone</h4>
+                        <div id="sent-label" class="sent-badge">Neutral</div>
+                        <div class="metric-line">Polarity Score: <span id="sent-polarity" class="font-bold">0.0</span> (-1 to +1)</div>
+                        <div class="metric-line">Subjectivity: <span id="sent-subjectivity" class="font-bold">0.0</span> (0 = objective)</div>
+                    </div>
+
+                    <div class="sent-card">
+                        <h4>Dominant Emotion</h4>
+                        <div id="emotion-dominant" class="sent-badge badge-purple">Objective</div>
+                        <div id="emotion-breakdown" class="emotion-bars-box"></div>
+                    </div>
+
+                    <div class="sent-card">
+                        <h4>Clickbait & Sensationalism</h4>
+                        <div id="cb-rating" class="sent-badge badge-amber">Standard</div>
+                        <div class="metric-line">Hype Index: <span id="cb-score" class="font-bold">0</span> / 100</div>
+                        <div id="cb-triggers-box" class="cb-triggers"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/analyzer.js"></script>
+{% endblock %}

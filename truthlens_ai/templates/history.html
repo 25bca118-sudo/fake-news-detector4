@@ -1,0 +1,171 @@
+﻿{% extends "base.html" %}
+
+{% block title %}TruthLens AI — Analysis History & Audit Trail{% endblock %}
+
+{% block content %}
+<div class="workbench-container">
+    <div class="hero-section">
+        <div class="hero-badge"><i class="fa-solid fa-clock-rotate-left"></i> Analysis Records Archive</div>
+        <h1 class="hero-title">Verification <span class="gradient-text">History & Audit Trail</span></h1>
+        <p class="hero-desc">Review prior news analyses, examine historical credibility scores, filter by verdict, and re-download generated PDF reports.</p>
+    </div>
+
+    <div class="card workbench-card">
+        <!-- Search and Filter Bar -->
+        <div class="history-filter-bar">
+            <div class="search-input-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="history-search" placeholder="Search by headline, keyword, or domain..." oninput="debounceSearch()">
+            </div>
+
+            <div class="filter-dropdown-box">
+                <select id="history-filter" onchange="fetchHistory()">
+                    <option value="all">All Verdicts</option>
+                    <option value="Genuine">Likely Genuine Only</option>
+                    <option value="Fake">Potentially Fake Only</option>
+                    <option value="Inconclusive">Inconclusive Only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="table-responsive">
+            <table class="benchmark-table history-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Article Headline / Title</th>
+                        <th>Category</th>
+                        <th>Credibility Score</th>
+                        <th>Final Verdict</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <tr><td colspan="6" class="text-center">Loading verification history...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div id="details-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modal-title">Verification Details</h3>
+            <button class="modal-close" onclick="closeDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" id="modal-content">
+            <!-- Details rendered here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let searchTimeout = null;
+
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(fetchHistory, 300);
+}
+
+async function fetchHistory() {
+    const search = document.getElementById('history-search').value;
+    const verdict = document.getElementById('history-filter').value;
+    const tbody = document.getElementById('history-tbody');
+    
+    try {
+        const res = await fetch(`/api/history?search=${encodeURIComponent(search)}&verdict=${encodeURIComponent(verdict)}`);
+        const json = await res.json();
+        const records = json.data || [];
+        
+        tbody.innerHTML = '';
+        if (records.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">No matching verification records found in archive.</td></tr>';
+            return;
+        }
+
+        records.forEach(r => {
+            const tr = document.createElement('tr');
+            const dateStr = new Date(r.created_at).toLocaleDateString(undefined, {
+                month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+
+            let badgeClass = 'badge-inconclusive';
+            if (r.final_verdict.includes('Genuine')) badgeClass = 'badge-genuine';
+            if (r.final_verdict.includes('Fake')) badgeClass = 'badge-fake';
+
+            tr.innerHTML = `
+                <td><small>${dateStr}</small></td>
+                <td><b>${escapeHtml(r.title)}</b></td>
+                <td><span class="chip">${r.category || 'General'}</span></td>
+                <td><b>${r.credibility_score}/100</b></td>
+                <td><span class="verdict-pill ${badgeClass}">${escapeHtml(r.final_verdict)}</span></td>
+                <td class="action-cells">
+                    <button class="btn-mini" onclick="viewDetails(${r.id})" title="View Details"><i class="fa-solid fa-eye"></i></button>
+                    ${r.report_filename ? `<a href="/reports/${r.report_filename}" target="_blank" class="btn-mini btn-pdf-mini" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></a>` : ''}
+                    <button class="btn-mini btn-delete" onclick="deleteRecord(${r.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-rose">Error loading history: ${e.message}</td></tr>`;
+    }
+}
+
+async function viewDetails(id) {
+    try {
+        const res = await fetch(`/api/history/${id}`);
+        const data = await res.json();
+        if (!data.success) return;
+        const r = data.data;
+
+        document.getElementById('modal-title').innerText = r.title;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="modal-section">
+                <p><b>Final Verdict:</b> ${r.final_verdict} (Credibility: ${r.credibility_score}/100)</p>
+                <p><b>URL / Source:</b> ${r.url || 'Direct Text Input'}</p>
+                <p><b>Snippet:</b> ${escapeHtml(r.content_snippet)}</p>
+            </div>
+            <div class="modal-section">
+                <h4>Multi-Model Overview</h4>
+                <p>ML Confidence: ${r.ml_confidence}% | Deep Learning: ${r.deep_learning_score}%</p>
+            </div>
+            ${r.report_filename ? `<div class="modal-footer"><a href="/reports/${r.report_filename}" target="_blank" class="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Open PDF Report</a></div>` : ''}
+        `;
+        document.getElementById('details-modal').classList.remove('hidden');
+    } catch (e) {
+        showToast("Failed to load details: " + e.message, "error");
+    }
+}
+
+function closeDetailsModal() {
+    document.getElementById('details-modal').classList.add('hidden');
+}
+
+async function deleteRecord(id) {
+    if (!confirm("Are you sure you want to delete this analysis record?")) return;
+    try {
+        const res = await fetch(`/api/history/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            showToast("Record deleted.", "success");
+            fetchHistory();
+        }
+    } catch (e) {
+        showToast("Error deleting: " + e.message, "error");
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+document.addEventListener('DOMContentLoaded', fetchHistory);
+</script>
+{% endblock %}

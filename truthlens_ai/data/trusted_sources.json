@@ -1,0 +1,190 @@
+{
+  "high_credibility": [
+    {
+      "domain": "reuters.com",
+      "name": "Reuters",
+      "country": "Global",
+      "bias": "Center / Objective",
+      "score": 98
+    },
+    {
+      "domain": "apnews.com",
+      "name": "Associated Press",
+      "country": "Global",
+      "bias": "Center / Objective",
+      "score": 98
+    },
+    {
+      "domain": "bbc.com",
+      "name": "BBC News",
+      "country": "UK/Global",
+      "bias": "Center / High Integrity",
+      "score": 94
+    },
+    {
+      "domain": "thehindu.com",
+      "name": "The Hindu",
+      "country": "India",
+      "bias": "Center-Left / Reputable",
+      "score": 92
+    },
+    {
+      "domain": "indianexpress.com",
+      "name": "The Indian Express",
+      "country": "India",
+      "bias": "Center / Investigative",
+      "score": 91
+    },
+    {
+      "domain": "pib.gov.in",
+      "name": "Press Information Bureau (Gov of India)",
+      "country": "India",
+      "bias": "Official Government",
+      "score": 96
+    },
+    {
+      "domain": "factcheck.org",
+      "name": "FactCheck.org",
+      "country": "USA",
+      "bias": "Non-partisan Fact Checker",
+      "score": 97
+    },
+    {
+      "domain": "snopes.com",
+      "name": "Snopes",
+      "country": "USA",
+      "bias": "Fact Checking Unit",
+      "score": 94
+    },
+    {
+      "domain": "boomlive.in",
+      "name": "BOOM Live FactCheck",
+      "country": "India",
+      "bias": "Certified IFCN Fact-Checker",
+      "score": 95
+    },
+    {
+      "domain": "altnews.in",
+      "name": "Alt News",
+      "country": "India",
+      "bias": "Fact Checking Unit",
+      "score": 93
+    },
+    {
+      "domain": "nature.com",
+      "name": "Nature Journal",
+      "country": "Global",
+      "bias": "Peer-Reviewed Science",
+      "score": 99
+    },
+    {
+      "domain": "sciencemag.org",
+      "name": "Science Magazine",
+      "country": "Global",
+      "bias": "Peer-Reviewed Science",
+      "score": 99
+    },
+    {
+      "domain": "who.int",
+      "name": "World Health Organization",
+      "country": "Global",
+      "bias": "Official Health Authority",
+      "score": 98
+    },
+    {
+      "domain": "isro.gov.in",
+      "name": "ISRO",
+      "country": "India",
+      "bias": "Official Space Agency",
+      "score": 99
+    },
+    {
+      "domain": "bloomberg.com",
+      "name": "Bloomberg",
+      "country": "Global",
+      "bias": "Financial Journalism",
+      "score": 93
+    },
+    {
+      "domain": "wsj.com",
+      "name": "The Wall Street Journal",
+      "country": "USA",
+      "bias": "Center-Right / Reputable",
+      "score": 92
+    },
+    {
+      "domain": "thewire.in",
+      "name": "The Wire",
+      "country": "India",
+      "bias": "Left-Leaning Independent",
+      "score": 85
+    },
+    {
+      "domain": "hindustantimes.com",
+      "name": "Hindustan Times",
+      "country": "India",
+      "bias": "Center / Mainstream",
+      "score": 88
+    },
+    {
+      "domain": "timesofindia.indiatimes.com",
+      "name": "The Times of India",
+      "country": "India",
+      "bias": "Mainstream Media",
+      "score": 86
+    },
+    {
+      "domain": "ndtv.com",
+      "name": "NDTV",
+      "country": "India",
+      "bias": "Mainstream News",
+      "score": 87
+    }
+  ],
+  "satire_sources": [
+    {
+      "domain": "theonion.com",
+      "name": "The Onion",
+      "type": "Satire",
+      "description": "American satirical digital media company."
+    },
+    {
+      "domain": "babylonbee.com",
+      "name": "The Babylon Bee",
+      "type": "Satire",
+      "description": "Christian satire news site."
+    },
+    {
+      "domain": "fakingnews.firstpost.com",
+      "name": "Faking News",
+      "type": "Satire",
+      "description": "Indian satire news portal."
+    },
+    {
+      "domain": "newsthump.com",
+      "name": "NewsThump",
+      "type": "Satire",
+      "description": "UK topical satire and spoof news."
+    }
+  ],
+  "low_credibility_flags": [
+    "infowars.com",
+    "naturalnews.com",
+    "beforeitsnews.com",
+    "worldnewsdailyreport.com",
+    "yournewswire.com",
+    "newspunch.com",
+    "thegatewaypundit.com",
+    "clickhole.com"
+  ],
+  "suspicious_tlds": [
+    ".xyz",
+    ".top",
+    ".buzz",
+    ".click",
+    ".live",
+    ".surf",
+    ".icu",
+    ".monster"
+  ]
+}

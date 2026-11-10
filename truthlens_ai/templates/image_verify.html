@@ -1,0 +1,188 @@
+﻿{% extends "base.html" %}
+
+{% block title %}TruthLens AI — Forensic Image Verification & ELA{% endblock %}
+
+{% block content %}
+<div class="workbench-container">
+    <div class="hero-section">
+        <div class="hero-badge"><i class="fa-solid fa-camera-rotate"></i> Forensic Digital Image Analysis</div>
+        <h1 class="hero-title">Detect <span class="gradient-text">Manipulated & Spliced</span> News Images</h1>
+        <p class="hero-desc">Inspect photographs using Error Level Analysis (ELA) to identify digital modifications, extract hidden EXIF metadata, and query global reverse image search indexes.</p>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="card workbench-card">
+        <form id="image-form" onsubmit="submitImageVerification(event)" enctype="multipart/form-data">
+            <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('image-input').click()">
+                <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                <h3>Drag & Drop News Image or Click to Browse</h3>
+                <p>Supports high-resolution JPG, JPEG, and PNG images associated with viral news stories.</p>
+                <input type="file" id="image-input" name="image" accept="image/jpeg,image/png,image/jpg" class="hidden" onchange="previewSelectedImage(this)">
+            </div>
+            
+            <div id="image-preview-bar" class="image-preview-bar hidden">
+                <span id="preview-filename"><i class="fa-regular fa-image"></i> image.jpg</span>
+                <button type="submit" id="btn-verify-image" class="btn-primary-lg">
+                    <span id="btn-img-text"><i class="fa-solid fa-microscope"></i> Perform Forensic Inspection</span>
+                    <span id="btn-img-spinner" class="spinner hidden"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Image Results Section -->
+    <div id="image-results" class="results-container hidden">
+        <!-- Dual Pane Comparison -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h3><i class="fa-solid fa-arrows-left-right text-indigo"></i> Dual-Pane Visual Comparison</h3>
+                    <p class="card-subtitle">Original uploaded news photo compared with amplified Error Level Analysis (ELA) difference map.</p>
+                </div>
+                <div id="image-tamper-badge" class="verdict-pill">Evaluating...</div>
+            </div>
+
+            <div class="dual-image-grid">
+                <div class="image-box">
+                    <div class="image-box-header"><i class="fa-solid fa-image"></i> Original Submitted Photo</div>
+                    <div class="img-wrapper">
+                        <img id="img-original" src="" alt="Original Photo">
+                    </div>
+                </div>
+
+                <div class="image-box">
+                    <div class="image-box-header"><i class="fa-solid fa-wand-magic-sparkles text-rose"></i> ELA Error Level Analysis Map</div>
+                    <div class="img-wrapper">
+                        <img id="img-ela" src="" alt="Error Level Analysis Map">
+                    </div>
+                    <p class="ela-caption"><i class="fa-solid fa-info-circle"></i> Spliced or digitally inserted regions display brighter, non-uniform compression error levels.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forensics Details Grid -->
+        <div class="kpi-grid">
+            <div class="card kpi-card">
+                <div class="kpi-icon icon-rose"><i class="fa-solid fa-fingerprint"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Manipulation Likelihood</span>
+                    <span id="img-manip-score" class="kpi-val">--%</span>
+                    <span class="kpi-desc">Based on pixel variance</span>
+                </div>
+            </div>
+
+            <div class="card kpi-card">
+                <div class="kpi-icon icon-blue"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Reverse Search Integrations</span>
+                    <div class="reverse-links-box">
+                        <a id="link-lens" href="#" target="_blank" class="btn-mini"><i class="fa-brands fa-google"></i> Google Lens</a>
+                        <a id="link-tineye" href="#" target="_blank" class="btn-mini"><i class="fa-solid fa-magnifying-glass"></i> TinEye</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXIF Inspector Table -->
+        <div class="card table-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-camera text-indigo"></i> Extracted EXIF Metadata</h3>
+                <span class="badge">Hardware & Software Tags</span>
+            </div>
+            <div class="table-responsive">
+                <table class="benchmark-table">
+                    <thead>
+                        <tr>
+                            <th>Metadata Field</th>
+                            <th>Recorded Tag Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exif-tbody">
+                        <tr><td colspan="2">No EXIF hardware data discovered.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewSelectedImage(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById('preview-filename').innerHTML = `<i class="fa-regular fa-image"></i> ${file.name} (${Math.round(file.size / 1024)} KB)`;
+        document.getElementById('image-preview-bar').classList.remove('hidden');
+    }
+}
+
+async function submitImageVerification(event) {
+    event.preventDefault();
+    const fileInput = document.getElementById('image-input');
+    if (!fileInput.files || !fileInput.files[0]) {
+        showToast("Please choose an image to inspect.", "warning");
+        return;
+    }
+
+    const btn = document.getElementById('btn-verify-image');
+    const text = document.getElementById('btn-img-text');
+    const spinner = document.getElementById('btn-img-spinner');
+    
+    text.classList.add('hidden');
+    spinner.classList.remove('hidden');
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+
+    try {
+        const res = await fetch('/api/image-verify', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || "Image inspection failed.", "error");
+            return;
+        }
+
+        const info = data.data;
+        document.getElementById('img-original').src = info.original_image;
+        document.getElementById('img-ela').src = info.ela_image;
+        document.getElementById('img-manip-score').innerText = `${info.manipulation_score}%`;
+        
+        const badge = document.getElementById('image-tamper-badge');
+        badge.innerText = info.tampering_verdict;
+        badge.className = `verdict-pill ${info.is_tampered ? 'badge-fake' : 'badge-genuine'}`;
+
+        document.getElementById('link-lens').href = info.reverse_search.google_lens;
+        document.getElementById('link-tineye').href = info.reverse_search.tineye;
+
+        // Render EXIF
+        const tbody = document.getElementById('exif-tbody');
+        tbody.innerHTML = '';
+        const keys = Object.keys(info.exif_metadata || {});
+        if (keys.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2">No hardware EXIF records found in this image. (Metadata was stripped or compressed by social media).</td></tr>';
+        } else {
+            keys.forEach(k => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><b>${k}</b></td><td><code>${info.exif_metadata[k]}</code></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('image-results').classList.remove('hidden');
+        document.getElementById('image-results').scrollIntoView({ behavior: 'smooth' });
+        showToast("Forensic inspection & ELA completed!", "success");
+    } catch (err) {
+        showToast("Error inspecting image: " + err.message, "error");
+    } finally {
+        text.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

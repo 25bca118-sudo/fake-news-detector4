@@ -1,0 +1,108 @@
+﻿{% extends "base.html" %}
+
+{% block title %}TruthLens AI — Analytics & Model Performance Dashboard{% endblock %}
+
+{% block content %}
+<div class="workbench-container">
+    <div class="hero-section">
+        <div class="hero-badge"><i class="fa-solid fa-chart-line"></i> Intelligence Overview & Comparative ML Benchmarks</div>
+        <h1 class="hero-title">Platform <span class="gradient-text">Analytics & Model Performance</span></h1>
+        <p class="hero-desc">Monitor real-time verification trends, category breakdowns, and compare algorithm metrics across Logistic Regression, Naive Bayes, Random Forest, and DistilBERT.</p>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="kpi-grid">
+        <div class="card kpi-card">
+            <div class="kpi-icon icon-blue"><i class="fa-solid fa-file-shield"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-title">Total Analyses Run</span>
+                <span id="dash-total" class="kpi-val">--</span>
+                <span class="kpi-desc">Global platform queries</span>
+            </div>
+        </div>
+        <div class="card kpi-card">
+            <div class="kpi-icon icon-emerald"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-title">Likely Genuine</span>
+                <span id="dash-genuine" class="kpi-val text-emerald">--</span>
+                <span class="kpi-desc">Verified news & communiques</span>
+            </div>
+        </div>
+        <div class="card kpi-card">
+            <div class="kpi-icon icon-rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-title">Potentially Fake</span>
+                <span id="dash-fake" class="kpi-val text-rose">--</span>
+                <span class="kpi-desc">Fabricated or misleading</span>
+            </div>
+        </div>
+        <div class="card kpi-card">
+            <div class="kpi-icon icon-purple"><i class="fa-solid fa-gauge-high"></i></div>
+            <div class="kpi-info">
+                <span class="kpi-title">Avg Platform Credibility</span>
+                <span id="dash-avg" class="kpi-val">-- / 100</span>
+                <span class="kpi-desc">Mean credibility index</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="charts-row">
+        <!-- Verification Verdicts Donut -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-chart-pie text-indigo"></i> Detection Verdict Distribution</h3>
+                <span class="badge">Real-time</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="verdictChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Category Breakdown Bar Chart -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3><i class="fa-solid fa-folder-tree text-indigo"></i> News Categories Monitored</h3>
+                <span class="badge">Volume</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model Benchmarks Card -->
+    <div class="card table-card">
+        <div class="card-header">
+            <div>
+                <h3><i class="fa-solid fa-microchip text-indigo"></i> Model Evaluation & Classification Benchmarks</h3>
+                <p class="card-subtitle">Empirical test split evaluation across traditional statistical algorithms and contextual transformer embeddings.</p>
+            </div>
+            <a href="/" class="btn-primary-sm"><i class="fa-solid fa-play"></i> Test In Analyzer</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="benchmark-table">
+                <thead>
+                    <tr>
+                        <th>Algorithm Name</th>
+                        <th>Architecture Type</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="benchmark-tbody">
+                    <tr><td colspan="7" class="text-center">Loading model benchmark metrics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}
